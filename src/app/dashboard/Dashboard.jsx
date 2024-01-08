@@ -11,7 +11,7 @@ import InvestmentChart from "./components/InvestmentChart";
 
 const Dashboard = () => {
   return (
-    <div className="h-screen w-screen flex flex-col ">
+    <div className="h-full w-full flex flex-col ">
       <div className="flex flex-col justify-around md:m-10 ">
         <div className="flex flex-col md:flex-row justify-around">
           <SimulaeInvestmentWidget />
@@ -22,7 +22,6 @@ const Dashboard = () => {
           <InvestmentChart />
         </div>
       </div>
-      {/* <div className="h-screen w-full flex flex-col items-center border border-black"></div> */}
     </div>
   );
 };

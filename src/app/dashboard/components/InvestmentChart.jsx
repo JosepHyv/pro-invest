@@ -54,6 +54,7 @@ const BarChartData = [
 const InvestmentChart = ({ title, dataRecover }) => {
   const options = {
     responsive: true,
+    maintainAspectRatio: true,
     plugins: {
       legend: {
         position: "top",
@@ -66,20 +67,20 @@ const InvestmentChart = ({ title, dataRecover }) => {
         display: true,
         text: "Inversiones",
         font: {
-          size: 30,
+          size: 25,
         },
       },
     },
   };
 
-  const labels = [1, 2, 3, 4, 5];
+  const labels = [1, 2, 3];
 
   const data = {
     labels,
     datasets: [
       {
         label: "Dataset 1",
-        data: [1, 2, 3, 4, 5],
+        data: [100, 200, 300, 400, 500],
         //   backgroundColor: "rgba(255, 99, 132, 0.5)",
       },
       {
@@ -87,31 +88,21 @@ const InvestmentChart = ({ title, dataRecover }) => {
         data: [4, 5, 6, 7, 8],
         //   backgroundColor: "rgba(53, 162, 235, 0.5)",
       },
-      {
-        label: "Dataset 3",
-        data: [1, 2, 3, 4, 5],
-        //   backgroundColor: "rgba(255, 99, 132, 0.5)",
-      },
-      {
-        label: "Dataset 4",
-        data: [1, 2, 3, 4, 5],
-        //   backgroundColor: "rgba(255, 99, 132, 0.5)",
-      },
+      // {
+      //   label: "Dataset 3",
+      //   data: [1, 2, 3, 4, 5],
+      //   //   backgroundColor: "rgba(255, 99, 132, 0.5)",
+      // },
+      // {
+      //   label: "Dataset 4",
+      //   data: [1, 2, 3, 4, 5],
+      //   //   backgroundColor: "rgba(255, 99, 132, 0.5)",
+      // },
     ],
   };
   return (
-    <div className="flex md:w-1/2 border-black m-5">
-      <Bar
-        options={options}
-        data={data}
-        responsive={[
-          //   { breakpoint: "xs", height: 10000 },
-          { breakpoint: "sm", height: 800 },
-          { breakpoint: "md", height: 700 },
-          { breakpoint: "lg", height: 700 },
-          { breakpoint: "xl", height: 700 },
-        ]}
-      />
+    <div className="flex h-auto w-auto md:h-auto md:w-1/2  m-5 ">
+      <Bar options={options} data={data} />
     </div>
   );
 };
