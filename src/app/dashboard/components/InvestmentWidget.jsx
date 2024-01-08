@@ -12,8 +12,13 @@ import {
   CheckBox,
 } from "keep-react";
 import { WarningCircle } from "phosphor-react";
+import {
+  useSimulationStore,
+  useComparationStore,
+} from "@/app/hooks/inversionStorage";
 
-const SimulaeInvestmentWidget = () => {
+const SimulaeInvestmentWidget = ({ tiposInversion }) => {
+  const { simulation, setSim } = useSimulationStore();
   const [importe, setImporte] = useState(0);
   const [tipoInversion, setTipoInversion] = useState(
     "Selecciona el tipo de inversión"
@@ -23,17 +28,34 @@ const SimulaeInvestmentWidget = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [error, setError] = useState("");
   const validate = () => {
-    let fail = false;
     if (importe < 10000) {
       setErrorMsg("El Importe debe ser de un minimo de $10000 MXN");
-      fail = true;
-    }
-    if (tipoInversion != "CETES" && tipoInversion != "SP500") {
-      setErrorMsg("Selecciona un tipo de inversion valido");
-      fail = true;
+      setError(true);
+      return;
     }
 
-    setError(fail);
+    const elements = [];
+    tiposInversion.forEach((element) => {
+      elements.push(element.typeName);
+    });
+
+    // console.log(elements);
+    if (!elements.includes(tipoInversion)) {
+      setErrorMsg("Selecciona un tipo de inversion valido");
+      setError(true);
+      return;
+    }
+
+    const pos = elements.findIndex((item) => item === tipoInversion);
+    const sim = {
+      importe,
+      tiempo,
+      tipoInversion,
+      interes: tiposInversion[pos].anualInterestRate,
+    };
+
+    console.log(sim);
+    setSim(sim);
   };
 
   return (
@@ -70,27 +92,17 @@ const SimulaeInvestmentWidget = () => {
           type="outlinePrimary"
           dismissOnClick={true}
         >
-          <Dropdown.Item
-            onClick={(event) => {
-              setTipoInversion("Selecciona el tipo de inversión");
-            }}
-          >
-            Selecciona el tipo de inversión
-          </Dropdown.Item>
-          <Dropdown.Item
-            onClick={(event) => {
-              setTipoInversion("CETES");
-            }}
-          >
-            CETES
-          </Dropdown.Item>
-          <Dropdown.Item
-            onClick={(event) => {
-              setTipoInversion("SP500");
-            }}
-          >
-            SP500
-          </Dropdown.Item>
+          {tiposInversion.map((item) => (
+            <Dropdown.Item
+              key={item.idInvestmentType}
+              onClick={(event) => {
+                console.log(item.typeName);
+                setTipoInversion(item.typeName);
+              }}
+            >
+              {item.typeName}
+            </Dropdown.Item>
+          ))}
         </Dropdown>
         <Label
           className="text-md md:text-xl"
@@ -105,7 +117,6 @@ const SimulaeInvestmentWidget = () => {
           max="5"
           value={tiempo}
           onChange={(event) => {
-            console.log(event.target.valueAsNumber);
             setTiempo(event.target.valueAsNumber);
           }}
           step="1"
@@ -138,29 +149,50 @@ const SimulaeInvestmentWidget = () => {
   );
 };
 
-const CompareInvestmentWidget = () => {
+const CompareInvestmentWidget = ({ tiposInversion }) => {
+  const { setCom } = useComparationStore();
   const [importe, setImporte] = useState(0);
-  const [cetes, setSetes] = useState(false);
-  const [sp, setSP] = useState(false);
-  const [tipoInversion, setTipoInversion] = useState([]);
+  const [tipoInversion, setTipoInversion] = useState("Tipo De Inversion 1");
+  const [tipoInversion2, setTipoInversion2] = useState("Tipo De Inversion 2");
   const [tiempo, setTiempo] = useState(1);
-  const [modalVisible, setModal] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [error, setError] = useState("");
 
   const validate = () => {
     // console.log(cetes, sp);
-    let fail = false;
+
     if (importe < 10000) {
       setErrorMsg("El Importe debe ser de un minimo de $10000 MXN");
-      fail = true;
-    }
-    if (!cetes || !sp) {
-      setErrorMsg("Debes Seleccionar al menos 2 tipos de inversion");
-      fail = true;
+      setError(true);
+      return;
     }
 
-    setError(fail);
+    const elements = [];
+    tiposInversion.forEach((element) => {
+      elements.push(element.typeName);
+    });
+
+    if (
+      !elements.includes(tipoInversion) ||
+      !elements.includes(tipoInversion2)
+    ) {
+      setErrorMsg("Debes Seleccionar al menos 2 tipos de inversion");
+      setError(true);
+      return;
+    }
+
+    const pos1 = elements.findIndex((item) => item === tipoInversion);
+    const pos2 = elements.findIndex((item) => item === tipoInversion2);
+
+    const sim = {
+      importe,
+      tiempo,
+      tipoInversion,
+      segundoTipo: tipoInversion2,
+      interes: tiposInversion[pos1].anualInterestRate,
+      segundoInteres: tiposInversion[pos2].anualInterestRate,
+    };
+    setCom(sim);
   };
 
   return (
@@ -190,37 +222,48 @@ const CompareInvestmentWidget = () => {
           htmlFor="tipo"
           value="Selecciona el tipo de inversión"
         />
-        <Dropdown
-          id="tipo"
-          label={"Tipos De Inversión"}
-          size="lg"
-          pill
-          type="outlinePrimary"
-          dismissOnClick={true}
-        >
-          <Dropdown.Item>
-            <div className="flex items-center">
-              <CheckBox
-                // id="#id1"
-                label="CETES"
-                name="CETES"
-                size="sm"
-                handleChecked={(value) => setSetes(value)}
-              />
-            </div>
-          </Dropdown.Item>
-          <Dropdown.Item>
-            <div className="flex items-center">
-              <CheckBox
-                id="#id2"
-                label="SP500"
-                name="SP500"
-                size="sm"
-                handleChecked={(value) => setSP(value)}
-              />
-            </div>
-          </Dropdown.Item>
-        </Dropdown>
+        <div className="flex flex-row gap-5">
+          <Dropdown
+            id="tipo"
+            label={tipoInversion}
+            pill
+            size="lg"
+            type="outlinePrimary"
+            dismissOnClick={true}
+          >
+            {tiposInversion.map((item) => (
+              <Dropdown.Item
+                key={item.idInvestmentType}
+                onClick={(event) => {
+                  console.log(item.typeName);
+                  setTipoInversion(item.typeName);
+                }}
+              >
+                {item.typeName}
+              </Dropdown.Item>
+            ))}
+          </Dropdown>
+          <Dropdown
+            id="tipo"
+            label={tipoInversion2}
+            pill
+            size="lg"
+            type="outlinePrimary"
+            dismissOnClick={true}
+          >
+            {tiposInversion.map((item) => (
+              <Dropdown.Item
+                key={item.idInvestmentType}
+                onClick={(event) => {
+                  console.log(item.typeName);
+                  setTipoInversion2(item.typeName);
+                }}
+              >
+                {item.typeName}
+              </Dropdown.Item>
+            ))}
+          </Dropdown>
+        </div>
         <Label
           className="text-md md:text-xl"
           htmlFor="tiempo"
