@@ -40,6 +40,7 @@ const InvestmentInfo = () => {
         setFecha(
           `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`
         );
+        setButton("outlinePrimary");
         setPass(true);
         console.log(res.data);
       })
@@ -51,7 +52,6 @@ const InvestmentInfo = () => {
 
   const descarga = () => {
     if (pass) {
-        
     }
   };
 
