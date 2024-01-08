@@ -1,6 +1,8 @@
 "use client";
-import { Button, Navbar } from "keep-react";
+
+import Dashboard from "./dashboard/Dashboard";
+
 const App = () => {
-  return <div> page </div>;
+  return <Dashboard />;
 };
 export default App;
