@@ -16,8 +16,10 @@ import {
   useSimulationStore,
   useComparationStore,
 } from "@/app/hooks/inversionStorage";
+import useInversionTypeStorage from "@/app/hooks/tiposInversionStorage";
 
-const SimulaeInvestmentWidget = ({ tiposInversion }) => {
+const SimulaeInvestmentWidget = () => {
+  const { inversionTypes } = useInversionTypeStorage();
   const { simulation, setSim } = useSimulationStore();
   const [importe, setImporte] = useState(0);
   const [tipoInversion, setTipoInversion] = useState(
@@ -35,7 +37,7 @@ const SimulaeInvestmentWidget = ({ tiposInversion }) => {
     }
 
     const elements = [];
-    tiposInversion.forEach((element) => {
+    inversionTypes.forEach((element) => {
       elements.push(element.typeName);
     });
 
@@ -51,7 +53,7 @@ const SimulaeInvestmentWidget = ({ tiposInversion }) => {
       importe,
       tiempo,
       tipoInversion,
-      interes: tiposInversion[pos].anualInterestRate,
+      interes: inversionTypes[pos].anualInterestRate,
     };
 
     console.log(sim);
@@ -92,7 +94,7 @@ const SimulaeInvestmentWidget = ({ tiposInversion }) => {
           type="outlinePrimary"
           dismissOnClick={true}
         >
-          {tiposInversion.map((item) => (
+          {inversionTypes.map((item) => (
             <Dropdown.Item
               key={item.idInvestmentType}
               onClick={(event) => {
@@ -149,8 +151,9 @@ const SimulaeInvestmentWidget = ({ tiposInversion }) => {
   );
 };
 
-const CompareInvestmentWidget = ({ tiposInversion }) => {
+const CompareInvestmentWidget = () => {
   const { setCom } = useComparationStore();
+  const { inversionTypes } = useInversionTypeStorage();
   const [importe, setImporte] = useState(0);
   const [tipoInversion, setTipoInversion] = useState("Tipo De Inversion 1");
   const [tipoInversion2, setTipoInversion2] = useState("Tipo De Inversion 2");
@@ -168,7 +171,7 @@ const CompareInvestmentWidget = ({ tiposInversion }) => {
     }
 
     const elements = [];
-    tiposInversion.forEach((element) => {
+    inversionTypes.forEach((element) => {
       elements.push(element.typeName);
     });
 
@@ -189,8 +192,8 @@ const CompareInvestmentWidget = ({ tiposInversion }) => {
       tiempo,
       tipoInversion,
       segundoTipo: tipoInversion2,
-      interes: tiposInversion[pos1].anualInterestRate,
-      segundoInteres: tiposInversion[pos2].anualInterestRate,
+      interes: inversionTypes[pos1].anualInterestRate,
+      segundoInteres: inversionTypes[pos2].anualInterestRate,
     };
     setCom(sim);
   };
@@ -231,7 +234,7 @@ const CompareInvestmentWidget = ({ tiposInversion }) => {
             type="outlinePrimary"
             dismissOnClick={true}
           >
-            {tiposInversion.map((item) => (
+            {inversionTypes.map((item) => (
               <Dropdown.Item
                 key={item.idInvestmentType}
                 onClick={(event) => {
@@ -251,7 +254,7 @@ const CompareInvestmentWidget = ({ tiposInversion }) => {
             type="outlinePrimary"
             dismissOnClick={true}
           >
-            {tiposInversion.map((item) => (
+            {inversionTypes.map((item) => (
               <Dropdown.Item
                 key={item.idInvestmentType}
                 onClick={(event) => {

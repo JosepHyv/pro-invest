@@ -1,10 +1,13 @@
 "use client";
 import react from "react";
-import { useState } from "react";
-import { Label, TextInput, Button, Modal } from "keep-react";
-import { WarningCircle } from "phosphor-react";
+import { useState, useEffect } from "react";
+import { Label, TextInput, Button, Modal, Dropdown } from "keep-react";
+import { WarningCircle, CheckCircle } from "phosphor-react";
+import axios from "axios";
+import useInversionTypeStorage from "../hooks/tiposInversionStorage";
 
 const InvestmentForm = () => {
+  const { inversionTypes, setInv } = useInversionTypeStorage();
   const [nombre, setNombre] = useState("");
   const [apellidoP, setApellidoP] = useState("");
 
@@ -13,16 +16,38 @@ const InvestmentForm = () => {
   const [rfc, setRfc] = useState("");
 
   const [fecha, setFecha] = useState("");
+  const [tipoInversion, setTipoInversion] = useState(
+    "Selecciona el tipo de inversión"
+  );
 
   const [grado, setGrado] = useState("");
   const [empresa, setEmpresa] = useState("");
   const [profesion, setProfesion] = useState("");
   const [correo, setCorreo] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [importe, setImporte] = useState(0);
+  const [tiempo, setTiempo] = useState(1);
   const [error, setError] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [pass, setPass] = useState(false);
+
+  useEffect(() => {
+    const url =
+      "https://proinvestapi.azurewebsites.net/InvestmentType/GetInvestmentTypes";
+    axios
+      .get(url)
+      .then((res) => {
+        console.log(res.data);
+        setInv(res.data);
+      })
+      .catch((res) => {
+        console.log("De nuevo");
+        console.log(res);
+      });
+  }, [setInv]);
 
   const validate = () => {
+    console.log(importe, !importe);
     if (
       !nombre ||
       !apellidoP ||
@@ -32,8 +57,9 @@ const InvestmentForm = () => {
       !grado ||
       !empresa ||
       !profesion ||
-      !correo ||
-      !telefono
+      //   !correo ||
+      !telefono ||
+      !importe
     ) {
       setErrorMsg("Todos los campos son obligatorios");
       setError(true);
@@ -52,15 +78,110 @@ const InvestmentForm = () => {
       return;
     }
 
-    const reg = new RegExp(
-      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
-    );
-
-    if (!reg.test(correo)) {
-      setErrorMsg("Debes Ingresar un correo valido");
+    if (importe < 10000) {
+      setErrorMsg("El importe debe ser de al menos $10,000 MXN");
       setError(true);
       return;
     }
+    const elements = [];
+    inversionTypes.forEach((element) => {
+      elements.push(element.typeName);
+    });
+
+    // console.log(elements);
+    if (!elements.includes(tipoInversion)) {
+      setErrorMsg("Selecciona un tipo de inversion valido");
+      setError(true);
+      return;
+    }
+    // const reg = new RegExp(
+    //   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
+    // );
+
+    // if (!reg.test(correo)) {
+    //   setErrorMsg("Debes Ingresar un correo valido");
+    //   setError(true);
+    //   return;
+    // }
+    const url = "https://proinvestapi.azurewebsites.net/Client/RegisterClient";
+    const body = {
+      name: nombre,
+      lastName: apellidoP + " " + apellidoM,
+      rfc: rfc.toUpperCase(),
+      birthDay: fecha,
+      academicDegree: grado,
+      profession: profesion,
+      companyName: empresa,
+      phoneNumber: telefono,
+    };
+    console.log(body);
+    axios
+      .post(url, body)
+      .then((res) => {
+        const selectetType = elements.findIndex(
+          (item) => item === tipoInversion
+        );
+
+        const crecimiento = inversionTypes[selectetType].anualInterestRate;
+        // console.log(crecimiento, typeof crecimiento);
+        let anterior = Number(importe);
+        for (let i = 1; i <= tiempo; i++) {
+          const nuevoi = anterior + anterior * (crecimiento / 100);
+          anterior = nuevoi;
+        }
+
+        const registry =
+          "https://proinvestapi.azurewebsites.net/InvestmentRequest/PutInvestmentRequest";
+
+        const invest = {
+          idInvestmentRequest: 0,
+          clientId: res.data,
+          date: "2024-01-08T11:13:05.548Z",
+          status: 0,
+          investmentFolio: "string",
+          ipaddress: "string",
+          investmentSimulatorId: 0,
+          originOfFoundsId: 1,
+          bankId: 1,
+          investmentAmout: Number(importe),
+          investmentTerm: tiempo,
+          stimatedResult: anterior,
+          investmentType: inversionTypes[selectetType].idInvestmentType,
+        };
+
+        // const inv2 = {
+        //   idInvestmentRequest: 0,
+        //   clientId: 1,
+        //   date: "2024-01-08T11:13:05.548Z",
+        //   status: 0,
+        //   investmentFolio: "string",
+        //   ipaddress: "string",
+        //   investmentSimulatorId: 0,
+        //   originOfFoundsId: 1,
+        //   bankId: 1,
+        //   investmentAmout: 100000,
+        //   investmentTerm: 3,
+        //   stimatedResult: 12000,
+        //   investmentType: 1,
+        // };
+
+        // console.log(invest, inv2);
+        axios
+          .post(registry, invest)
+          .then((res2) => {
+            setErrorMsg(`Tu folio es ${res2.data}`);
+            setPass(true);
+          })
+          .catch((res2) => {
+            console.log(res2);
+            setErrorMsg("Ocurrio un erro al hacer la solicitud de inversión");
+            setError(true);
+          });
+        console.log(res.data);
+      })
+      .catch((res) => {
+        console.log(res);
+      });
   };
 
   return (
@@ -99,7 +220,7 @@ const InvestmentForm = () => {
           id="RFC"
           type="text"
           maxLength={13}
-          value={rfc}
+          value={rfc.toUpperCase()}
           onChange={(event) => setRfc(event.target.value)}
         />
         <Label htmlFor="FechaNac" value="Fecha de Nacimiento" />
@@ -144,13 +265,13 @@ const InvestmentForm = () => {
           value={profesion}
           onChange={(event) => setProfesion(event.target.value)}
         />
-        <Label htmlFor="Correo" value="Correo Electronico" />
+        {/* <Label htmlFor="Correo" value="Correo Electronico" />
         <input
           className="w-full p-2 border rounded-lg shadow-md"
           id="Correo"
           value={correo}
           onChange={(event) => setCorreo(event.target.value)}
-        />
+        /> */}
         <Label htmlFor="Telefono" value="Telefono Celular" />
         <input
           type="text"
@@ -159,6 +280,54 @@ const InvestmentForm = () => {
           className="w-full p-2 border rounded-lg shadow-md"
           id="Telefono"
           onChange={(event) => setTelefono(event.target.value)}
+        />
+        <Label htmlFor="Importe" value="Importe Inicial" />
+        <input
+          type="number"
+          min="0"
+          step="10000"
+          value={importe}
+          className="w-full p-2 border rounded-lg shadow-md"
+          id="Importe"
+          onChange={(event) => setImporte(event.target.value)}
+        />
+        <Label
+          className="text-md md:text-xl"
+          htmlFor="tipo"
+          value="Tipo de Inversión"
+        />
+        <Dropdown
+          id="tipo"
+          label={tipoInversion}
+          size="lg"
+          type="outlinePrimary"
+          dismissOnClick={true}
+        >
+          {inversionTypes.map((item) => (
+            <Dropdown.Item
+              key={item.idInvestmentType}
+              onClick={(event) => {
+                console.log(item.typeName);
+                setTipoInversion(item.typeName);
+              }}
+            >
+              {item.typeName}
+            </Dropdown.Item>
+          ))}
+        </Dropdown>
+        <Label className="text-md md:text-xl" htmlFor="tiempo" value="plazo" />
+        <input
+          className="w-full"
+          id="tiempo"
+          type="range"
+          min="1"
+          max="5"
+          value={tiempo}
+          onChange={(event) => {
+            console.log(event.target.valueAsNumber);
+            setTiempo(event.target.valueAsNumber);
+          }}
+          step="1"
         />
       </div>
       <div className="self-center m-5 ">
@@ -175,6 +344,19 @@ const InvestmentForm = () => {
         <Modal.Header>{errorMsg}</Modal.Header>
         <Modal.Footer>
           <Button type="outlineGray" onClick={() => setError(!error)}>
+            Continuar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal
+        icon={<CheckCircle size={28} color="#65B556" />}
+        size="md"
+        show={pass}
+        onClose={() => setPass(!pass)}
+      >
+        <Modal.Header>{errorMsg}</Modal.Header>
+        <Modal.Footer>
+          <Button type="outlineGray" onClick={() => setPass(!pass)}>
             Continuar
           </Button>
         </Modal.Footer>

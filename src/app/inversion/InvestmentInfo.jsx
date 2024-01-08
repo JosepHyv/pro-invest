@@ -3,6 +3,7 @@ import react from "react";
 import { useState } from "react";
 import { Button, Label, TextInput, Modal } from "keep-react";
 import { WarningCircle } from "phosphor-react";
+import axios from "axios";
 
 const InvestmentInfo = () => {
   const [folio, setFolio] = useState("");
@@ -11,18 +12,46 @@ const InvestmentInfo = () => {
   const [fecha, setFecha] = useState("");
   const [error, setError] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [button, setButton] = useState("dashed");
+  const [pass, setPass] = useState(false);
   const validate = () => {
-    if (isNaN(folio)) {
-      setErrorMsg("El folio debe ser un numero");
-      setError(true);
-    }
-    if (!isNaN(folio) && !Number.isInteger(Number(folio))) {
-      setErrorMsg("El folio debe ser un numero entero");
-      setError(true);
-    }
+    // if (isNaN(folio)) {
+    //   setErrorMsg("El folio debe ser un numero");
+    //   setError(true);
+    // }
+    // if (!isNaN(folio) && !Number.isInteger(Number(folio))) {
+    //   setErrorMsg("El folio debe ser un numero entero");
+    //   setError(true);
+    // }
     if (!folio) {
       setErrorMsg("Debes ingresar el folio");
       setError(true);
+      return;
+    }
+
+    axios
+      .get(
+        `https://proinvestapi.azurewebsites.net/InvestmentRequest/GetInvestmentRequestByFolio/${folio}`
+      )
+      .then((res) => {
+        setFolior(folio);
+        setImporte(`$${res.data.investmentAmout} MXN`);
+        const fecha = new Date(res.data.date);
+        setFecha(
+          `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`
+        );
+        setPass(true);
+        console.log(res.data);
+      })
+      .catch(() => {
+        setErrorMsg("No Pudimos Encontrar el Folio");
+        setError(true);
+      });
+  };
+
+  const descarga = () => {
+    if (pass) {
+        
     }
   };
 
@@ -64,8 +93,11 @@ const InvestmentInfo = () => {
         </div>
         <hr />
       </div>
-      <div className="self-center m-5">
+      <div className="flex flex-row gap-10 self-center m-5">
         <Button type="primary" onClick={() => validate()}>
+          Obtener
+        </Button>
+        <Button type={button} onClick={() => descarga()}>
           Descargar
         </Button>
       </div>

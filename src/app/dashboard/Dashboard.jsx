@@ -17,9 +17,11 @@ import {
   useComparationStore,
   useSimulationStore,
 } from "../hooks/inversionStorage";
+import useInversionTypeStorage from "../hooks/tiposInversionStorage";
 
 const Dashboard = () => {
-  const [tipos, setTipos] = useState([]);
+  // const [, setTipos] = useState([]);
+  const { setInv } = useInversionTypeStorage();
   const { setSim } = useSimulationStore();
   const { setCom } = useComparationStore();
   useEffect(() => {
@@ -37,7 +39,7 @@ const Dashboard = () => {
       .get(url)
       .then((res) => {
         console.log(res.data);
-        setTipos(res.data);
+        setInv(res.data);
       })
       .catch((res) => {
         console.log("De nuevo");
@@ -49,11 +51,11 @@ const Dashboard = () => {
     <div className="h-full w-full flex flex-col ">
       <div className="flex flex-col justify-around md:m-10 ">
         <div className="flex flex-col md:flex-row justify-around">
-          <SimulaeInvestmentWidget tiposInversion={tipos} />
+          <SimulaeInvestmentWidget />
           <InvestmentChart title={"Simular Inversion"} />
         </div>
         <div className="flex flex-col md:flex-row justify-around">
-          <CompareInvestmentWidget tiposInversion={tipos} />
+          <CompareInvestmentWidget />
           <ComparationChart title="Comparar Inversiones" />
         </div>
       </div>
