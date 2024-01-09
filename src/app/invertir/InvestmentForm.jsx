@@ -1,7 +1,7 @@
 "use client";
 import react from "react";
 import { useState, useEffect } from "react";
-import { Label, TextInput, Button, Modal, Dropdown } from "keep-react";
+import { Label, TextInput, Button, Modal, Dropdown, Upload } from "keep-react";
 import { WarningCircle, CheckCircle } from "phosphor-react";
 import axios from "axios";
 import useInversionTypeStorage from "../hooks/tiposInversionStorage";
@@ -10,6 +10,9 @@ const InvestmentForm = () => {
   const { inversionTypes, setInv } = useInversionTypeStorage();
   const [nombre, setNombre] = useState("");
   const [apellidoP, setApellidoP] = useState("");
+  const [file1, setFile1] = useState("");
+  const [file2, setFile2] = useState("");
+  const [file3, setFile3] = useState("");
 
   const [apellidoM, setapellidoM] = useState("");
 
@@ -31,23 +34,30 @@ const InvestmentForm = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [pass, setPass] = useState(false);
 
+  const handleFileChange = (event, setter) => {
+    const file = event.target.files[0];
+    if (file) {
+      console.log(event.target.files[0].name);
+      setter(file.name);
+    }
+  };
+
   useEffect(() => {
     const url =
       "https://proinvestapi.azurewebsites.net/InvestmentType/GetInvestmentTypes";
     axios
       .get(url)
       .then((res) => {
-        console.log(res.data);
+
         setInv(res.data);
       })
       .catch((res) => {
-        console.log("De nuevo");
         console.log(res);
       });
   }, [setInv]);
 
   const validate = () => {
-    console.log(importe, !importe);
+
     if (
       !nombre ||
       !apellidoP ||
@@ -57,9 +67,11 @@ const InvestmentForm = () => {
       !grado ||
       !empresa ||
       !profesion ||
-      //   !correo ||
       !telefono ||
-      !importe
+      !importe ||
+      !file1 ||
+      !file2 ||
+      !file3
     ) {
       setErrorMsg("Todos los campos son obligatorios");
       setError(true);
@@ -88,21 +100,12 @@ const InvestmentForm = () => {
       elements.push(element.typeName);
     });
 
-    // console.log(elements);
+
     if (!elements.includes(tipoInversion)) {
       setErrorMsg("Selecciona un tipo de inversion valido");
       setError(true);
       return;
     }
-    // const reg = new RegExp(
-    //   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
-    // );
-
-    // if (!reg.test(correo)) {
-    //   setErrorMsg("Debes Ingresar un correo valido");
-    //   setError(true);
-    //   return;
-    // }
     const url = "https://proinvestapi.azurewebsites.net/Client/RegisterClient";
     const body = {
       name: nombre,
@@ -123,7 +126,6 @@ const InvestmentForm = () => {
         );
 
         const crecimiento = inversionTypes[selectetType].anualInterestRate;
-        // console.log(crecimiento, typeof crecimiento);
         let anterior = Number(importe);
         for (let i = 1; i <= tiempo; i++) {
           const nuevoi = anterior + anterior * (crecimiento / 100);
@@ -149,23 +151,6 @@ const InvestmentForm = () => {
           investmentType: inversionTypes[selectetType].idInvestmentType,
         };
 
-        // const inv2 = {
-        //   idInvestmentRequest: 0,
-        //   clientId: 1,
-        //   date: "2024-01-08T11:13:05.548Z",
-        //   status: 0,
-        //   investmentFolio: "string",
-        //   ipaddress: "string",
-        //   investmentSimulatorId: 0,
-        //   originOfFoundsId: 1,
-        //   bankId: 1,
-        //   investmentAmout: 100000,
-        //   investmentTerm: 3,
-        //   stimatedResult: 12000,
-        //   investmentType: 1,
-        // };
-
-        // console.log(invest, inv2);
         axios
           .post(registry, invest)
           .then((res2) => {
@@ -328,6 +313,39 @@ const InvestmentForm = () => {
             setTiempo(event.target.valueAsNumber);
           }}
           step="1"
+        />
+        <Label
+          className="text-md md:text-xl"
+          htmlFor="credencial"
+          value="Credencial"
+        />
+        <Upload
+          onFileChange={(event) => handleFileChange(event, setFile1)}
+          file={file1}
+          horizontal={true}
+          id="credencial"
+        />
+        <Label
+          className="text-md md:text-xl"
+          htmlFor="domicilio"
+          value="Comprobante de Domicilio"
+        />
+        <Upload
+          onFileChange={(event) => handleFileChange(event, setFile2)}
+          file={file2}
+          horizontal={true}
+          id="domicilio"
+        />
+        <Label
+          className="text-md md:text-xl"
+          htmlFor="estudios"
+          value="Comprobante de estudios"
+        />
+        <Upload
+          onFileChange={(event) => handleFileChange(event, setFile3)}
+          file={file3}
+          horizontal={true}
+          id="estudios"
         />
       </div>
       <div className="self-center m-5 ">
